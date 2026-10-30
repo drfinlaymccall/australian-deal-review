@@ -47,6 +47,25 @@ rule.** A threshold read here tells you what number applies, not whether
 the obligation bites. Anything resting on an Act is for counsel, and
 must be flagged as unverified here rather than asserted.
 
+### Provisions, and the forms that are not provisions
+
+Most law in the corpus is one file per section (`s-1-9.md`) or per
+regulation (`r-6.10.01.md`). The prescribed **forms** are not: in the
+Forms Determination the notification forms are whole Divisions with no
+section headings under them, so they are filed by the Part and Division
+that hold them — `part-6/div-2.md` is the short-form notification,
+`div-3` the long form, `div-4` the public benefit application. Ask for
+them by that name:
+
+    provision_on_date(
+      instrument="competition-and-consumer-notification-of-acquisitions-forms-determination-2025",
+      provision="part-6/div-2", date="<the date>")
+
+The form is what the ACCC actually requires to be filled in, so it is
+the fastest way to see what a notification will cost the seller in
+disclosure. Read it before advising on timetable: the information it
+demands of each party is the real work in a notification, not the fee.
+
 Nothing about **tax** is in this corpus. The look-through CGT treatment
 of an earn-out right sits in Subdivision 118-I of the Income Tax
 Assessment Act 1997, which is not here. Treat every tax point as a

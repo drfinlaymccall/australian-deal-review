@@ -93,8 +93,16 @@ def tag_on(folder, date):
 
 
 def provision_path(folder, provision):
-    """Accept '52', 's 52', 'section 52', '6.10.01', 'reg 6.10.01', '1-9'."""
+    """Accept '52', 's 52', 'section 52', '6.10.01', 'reg 6.10.01', '1-9',
+    and a container unit as the corpus names it ('part-6/div-2', or the
+    file name itself). A container unit is law text that sits under a Part
+    or Division with no section heading of its own -- the reproduced ACCC
+    forms are whole Divisions written that way."""
     raw = (provision or "").strip()
+    if raw.endswith(".md"):
+        return raw
+    if "/" in raw:
+        return raw + ".md"
     number = re.sub(r"^(?:sections?|ss?\.?|regulations?|regs?\.?|r\.?|clause|cl\.?)\s*",
                     "", raw, flags=re.I).strip()
     if not number:
