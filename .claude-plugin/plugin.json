@@ -1,0 +1,8 @@
+{
+  "name": "earnout-war-room",
+  "description": "Review earn-out drafts turn by turn against a counsel-approved playbook, with the Australian-side checks (foreign investment screening, merger notification, takeovers) read from the legislation as it stood on the date that matters. Preparation for counsel, not advice.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Finlay McCall"
+  }
+}
