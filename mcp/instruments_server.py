@@ -116,6 +116,36 @@ def provision_path(folder, provision):
     return "s-%s.md" % (match.group(1).zfill(3) + match.group(2) if match else number)
 
 
+def by_heading(folder, tag, phrase):
+    """The provision whose heading contains this phrase, at this compilation.
+
+    A provision is often known by its heading rather than its number -- the
+    definition that decides whether a fund is a foreign government investor
+    is section 17, which nobody remembers -- so a phrase is a reasonable
+    thing to ask for. One match is the answer; several is a question back,
+    because guessing between them would quote the wrong provision.
+    """
+    hits = []
+    for line in git("ls-tree", "-r", "--name-only", tag,
+                    "corpus/%s/" % folder).splitlines():
+        if not line.endswith(".md"):
+            continue
+        name = line.split("corpus/%s/" % folder, 1)[-1]
+        head = next((l for l in git("show", "%s:%s" % (tag, line),
+                                    check=False).splitlines()
+                     if l.startswith("# ")), "")
+        if phrase.lower() in head[2:].lower():
+            hits.append((name, head[2:].strip()))
+    if len(hits) == 1:
+        return hits[0][0]
+    if not hits:
+        return None
+    raise Problem(
+        "%r matches %d provisions in the compilation in force then: %s. "
+        "Ask for one by number." % (phrase, len(hits),
+                                    "; ".join("%s (%s)" % (n, h) for n, h in hits)))
+
+
 def record_caveat(folder, date, compiled_from):
     """What to say about how well the record covers this date.
 
@@ -178,14 +208,23 @@ def last_change(folder, path, tag):
 def t_provision_on_date(args):
     folder = resolve_instrument(args.get("instrument", ""))
     date = date_arg(args.get("date"))
-    path = provision_path(folder, args.get("provision", ""))
+    asked = (args.get("provision") or "").strip()
+    path = provision_path(folder, asked)
     tag = tag_on(folder, date)
     text = git("show", "%s:corpus/%s/%s" % (tag, folder, path), check=False)
+    if not text.strip() and " " in asked:
+        found = by_heading(folder, tag, asked)
+        if found:
+            path = found
+            text = git("show", "%s:corpus/%s/%s" % (tag, folder, path),
+                       check=False)
     if not text.strip():
         raise Problem(
             "%s has no %s in the compilation in force on %s (%s). Use "
-            "instrument_on_date to list what it did have."
-            % (folder, path, date, tag.rsplit("/", 1)[1]))
+            "instrument_on_date to list what it did have, or find_in_law "
+            "to search the words."
+            % (folder, "%r in any heading" % asked if " " in asked else path,
+               date, tag.rsplit("/", 1)[1]))
     compiled_from = tag.rsplit("/", 1)[1]
     out = {"instrument": folder, "provision": path, "date": date,
            "compilation_in_force_from": compiled_from,
@@ -286,7 +325,9 @@ TOOLS = [
      {"instrument": "Instrument: a folder name, a register id, or part of "
                     "the title (e.g. 'foreign acquisitions').",
       "provision": "Provision number: '52', 'section 52', '6.10.01', "
-                   "'reg 6.10.01', '1-9'.",
+                   "'reg 6.10.01', '1-9'. A container unit as the corpus "
+                   "names it ('part-6/div-2') also works, as does a phrase "
+                   "from the provision's heading when it matches only one.",
       "date": "YYYY-MM-DD. The day the question is about."},
      ["instrument", "provision", "date"]),
     ("instrument_on_date", t_instrument_on_date,
