@@ -6,6 +6,10 @@
     "name": "Finlay McCall"
   },
   "homepage": "https://github.com/drfinlaymccall/australian-deal-review",
+  "repository": "https://github.com/drfinlaymccall/australian-deal-review",
   "license": "Apache-2.0",
-  "keywords": ["legal", "m&a", "contract-review", "australia", "legislation"]
+  "keywords": ["legal", "m&a", "contract-review", "australia", "legislation"],
+  "icon": "./.claude-plugin/icon.png",
+  "documentationUrl": "https://github.com/drfinlaymccall/australian-deal-review#readme",
+  "supportUrl": "https://github.com/drfinlaymccall/australian-deal-review/issues"
 }
