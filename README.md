@@ -52,7 +52,7 @@ rest of this section is checking that it answers.
 git clone https://github.com/drfinlaymccall/australia-instruments.git
 ```
 
-About 35 MB on disk. The server is `tools/mcp_server.py` inside that
+About 11 MB on disk, most of it the git history. The server is `tools/mcp_server.py` inside that
 clone: Python 3.11 or later and `git`, standard library only, nothing to
 install. It speaks MCP over stdio, answers from the clone's git history,
 and makes no network calls.
@@ -109,6 +109,28 @@ This is the step that makes the rest worth having: it is how counsel's
 judgement gets applied on every turn without being paid for again. Until
 it is filled in, reviews describe clauses but do not grade them, and say
 so.
+
+### 6. Removing it
+
+```bash
+claude plugin uninstall australian-deal-review
+claude plugin marketplace remove drfinlaymccall
+```
+
+The marketplace is named after the repository owner rather than the
+plugin, which is why the second line reads `drfinlaymccall`. After those
+two the plugin loads nothing and costs nothing: `claude plugin list` is
+empty and the entries are gone from `settings.json`.
+
+A copy of the files stays in the cache, and deleting it is a separate
+step:
+
+```bash
+rm -rf ~/.claude/plugins/cache/drfinlaymccall
+```
+
+The corpus is a plain `git clone` that nothing registers, so it goes with
+`rm -rf` on the directory and unsetting `AU_INSTRUMENTS_CORPUS`.
 
 ### Where the legislation tools run
 
