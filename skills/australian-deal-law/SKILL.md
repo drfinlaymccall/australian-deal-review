@@ -66,6 +66,27 @@ the fastest way to see what a notification will cost the seller in
 disclosure. Read it before advising on timetable: the information it
 demands of each party is the real work in a notification, not the fee.
 
+### Dates the record does not cover
+
+Every answer names the compilation it was read from
+(`compilation_in_force_from`). Where the record is weaker than the
+answer looks, the answer also carries a `caveats` list. **Say the
+caveat in the output. Do not drop it**, and do not state a threshold
+from a caveated answer without it.
+
+Two things cause one. The register publishes some older compilations
+only as legacy `.doc` or `.rtf` files, and those are not in the
+corpus; for the Corporations Regulations they are scattered through
+its first decade rather than sitting in a block at the start, so a
+date in that range can resolve to a committed day that misses an
+amendment entirely. Each instrument's `no_gaps_from` in `corpus.json`
+is the day its record becomes continuous. And separately, a date
+between two compilations resolves to the earlier one — correct, but
+worth saying when the two are months apart.
+
+For anything load-bearing on a date before `no_gaps_from`, read the
+register itself. Do not assert it from here.
+
 Nothing about **tax** is in this corpus. The look-through CGT treatment
 of an earn-out right sits in Subdivision 118-I of the Income Tax
 Assessment Act 1997, which is not here. Treat every tax point as a

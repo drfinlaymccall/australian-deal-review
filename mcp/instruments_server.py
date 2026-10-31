@@ -6,13 +6,14 @@ has changed it since?". The corpus is a git history in which every
 commit is one amending instrument taking effect, so both questions are
 a git command. This server makes them tools.
 
-Nothing here reaches the network. It reads a local clone of
-https://github.com/drfinlaymccall/australia-instruments, whose path
-comes from AU_INSTRUMENTS_CORPUS.
+Nothing here reaches the network. It reads a local clone of the
+australia-instruments corpus -- a build of it on disk does just as
+well -- whose path comes from AU_INSTRUMENTS_CORPUS.
 
 Speaks newline-delimited JSON-RPC over stdio.
 """
 
+import datetime
 import json
 import os
 import re
@@ -115,6 +116,49 @@ def provision_path(folder, provision):
     return "s-%s.md" % (match.group(1).zfill(3) + match.group(2) if match else number)
 
 
+def record_caveat(folder, date, compiled_from):
+    """What to say about how well the record covers this date.
+
+    Two different things can make an answer weaker than it looks. The
+    compilations the register publishes only as legacy .doc or .rtf are not
+    in the corpus, and for the Corporations Regulations they are scattered
+    through the first eleven years rather than sitting in a block at the
+    start -- so a date in that range resolves to the last committed day
+    before it and can miss an amendment entirely. Separately, even where the
+    record is continuous, a date between two compilations resolves to the
+    earlier one, which is correct but worth stating when the gap is wide.
+    """
+    notes = []
+    try:
+        record = json.loads(git("show", "HEAD:corpus.json"))
+    except Exception:                                        # noqa: BLE001
+        notes.append("The corpus clone has no corpus.json at HEAD, so how "
+                     "completely it covers this date could not be checked.")
+        record = None
+    if record:
+        entry = next((i for i in record.get("instruments", [])
+                      if i.get("folder") == folder), None)
+        whole = (entry or {}).get("no_gaps_from")
+        if whole and date < whole:
+            notes.append(
+                "The record of this instrument is not continuous before %s: "
+                "the register publishes some compilations only as legacy .doc "
+                "or .rtf and those are not in the corpus. An amendment in "
+                "force on %s may be missing entirely. Check the register "
+                "before relying on this." % (whole, date))
+    try:
+        gap = (datetime.date.fromisoformat(date)
+               - datetime.date.fromisoformat(compiled_from)).days
+    except ValueError:
+        gap = None
+    if gap is not None and gap > 90:
+        notes.append(
+            "The compilation used took effect %s, %d days before the date "
+            "asked about. That is the text in force unless an amendment "
+            "between the two is not yet compiled." % (compiled_from, gap))
+    return notes
+
+
 def last_change(folder, path, tag):
     """The commit that last touched a provision at or before a tag."""
     out = git("log", "-1", "--format=%H%n%an%n%ad%n%B", "--date=short",
@@ -142,10 +186,15 @@ def t_provision_on_date(args):
             "%s has no %s in the compilation in force on %s (%s). Use "
             "instrument_on_date to list what it did have."
             % (folder, path, date, tag.rsplit("/", 1)[1]))
-    return {"instrument": folder, "provision": path, "date": date,
-            "compilation_in_force_from": tag.rsplit("/", 1)[1],
-            "last_changed_by": last_change(folder, path, tag),
-            "text": text[:MAX_CHARS]}
+    compiled_from = tag.rsplit("/", 1)[1]
+    out = {"instrument": folder, "provision": path, "date": date,
+           "compilation_in_force_from": compiled_from,
+           "last_changed_by": last_change(folder, path, tag),
+           "text": text[:MAX_CHARS]}
+    caveats = record_caveat(folder, date, compiled_from)
+    if caveats:
+        out["caveats"] = caveats
+    return out
 
 
 def t_instrument_on_date(args):
@@ -162,9 +211,14 @@ def t_instrument_on_date(args):
         blob = git("show", "%s:corpus/%s/%s" % (tag, folder, name), check=False)
         line = next((l for l in blob.splitlines() if l.startswith("# ")), "")
         headings[name] = line[2:].strip()
-    return {"instrument": folder, "date": date,
-            "compilation_in_force_from": tag.rsplit("/", 1)[1],
-            "provisions": headings, "count": len(headings)}
+    compiled_from = tag.rsplit("/", 1)[1]
+    out = {"instrument": folder, "date": date,
+           "compilation_in_force_from": compiled_from,
+           "provisions": headings, "count": len(headings)}
+    caveats = record_caveat(folder, date, compiled_from)
+    if caveats:
+        out["caveats"] = caveats
+    return out
 
 
 def t_what_changed(args):
@@ -237,7 +291,10 @@ TOOLS = [
      ["instrument", "provision", "date"]),
     ("instrument_on_date", t_instrument_on_date,
      "Every provision an instrument had on a date, with its heading. Use it "
-     "to see what existed then, before asking for any one provision.",
+     "to see what existed then, before asking for any one provision. An "
+     "instrument as large as the Corporations Regulations lists more than "
+     "the reply holds, and comes back trimmed with a count of what was "
+     "left out; reach those provisions with find_in_law instead.",
      {"instrument": "Instrument name, register id, or part of the title.",
       "date": "YYYY-MM-DD."},
      ["instrument", "date"]),
@@ -273,6 +330,45 @@ def tool_list():
     return out
 
 
+def fit(result):
+    """Serialise a result for the text channel, still valid JSON.
+
+    Cutting the serialised text at a character count leaves a string
+    unterminated, so a client reading it gets a parse error instead of a
+    long answer. Listing every provision of the Corporations Regulations
+    overran every time. The trimming therefore happens to the data, which
+    can say what it dropped; structuredContent still carries the whole
+    result for a client that reads that instead.
+    """
+    text = json.dumps(result, indent=1, ensure_ascii=False)
+    if len(text) <= MAX_CHARS:
+        return text
+    shown, omitted = dict(result), {}
+    while len(text) > MAX_CHARS:
+        sizes = {k: len(json.dumps(v, ensure_ascii=False))
+                 for k, v in shown.items()
+                 if k not in ("omitted", "omitted_note")
+                 and isinstance(v, (dict, list, str)) and len(v) > 1}
+        if not sizes:
+            break                     # only short scalars left: send it long
+        key = max(sizes, key=sizes.get)
+        value = shown[key]
+        over = len(text) - MAX_CHARS + 64
+        if isinstance(value, str):
+            keep = max(1, len(value) - over)
+        else:
+            keep = max(1, int(len(value) * (1 - min(0.9, over / sizes[key]))))
+        shown[key] = (dict(list(value.items())[:keep]) if isinstance(value, dict)
+                      else value[:keep])
+        omitted[key] = omitted.get(key, 0) + len(value) - keep
+        shown["omitted"] = omitted
+        shown["omitted_note"] = (
+            "Trimmed to fit one reply. Ask for a provision by name, or use "
+            "find_in_law, rather than reading the whole instrument.")
+        text = json.dumps(shown, indent=1, ensure_ascii=False)
+    return text
+
+
 def handle(message):
     mid = message.get("id")
     method = message.get("method")
@@ -303,8 +399,7 @@ def handle(message):
             return ok(mid, {"content": [{"type": "text",
                                          "text": "%s: %s" % (type(error).__name__, error)}],
                             "isError": True})
-        text = json.dumps(result, indent=1, ensure_ascii=False)
-        return ok(mid, {"content": [{"type": "text", "text": text[:MAX_CHARS]}],
+        return ok(mid, {"content": [{"type": "text", "text": fit(result)}],
                         "structuredContent": result})
     if mid is None:
         return None
