@@ -448,3 +448,12 @@ Two housekeeping points for afterwards: raise `version` in
 `plugin.json` on every release, because the directory picks up each
 commit on `main`; and an organisation may create only 10 submissions in
 any 24 hours, with drafts and withdrawals counting.
+
+The eval suite stays a manual gate, not a CI job. A full run with the
+ablation arm is about $2.86 and six minutes; `claude plugin eval .`
+alone, at the committed default of three runs per case, is about $1.70.
+Run it before raising `version`, not on every push. What should run
+before every push to `main` is `claude plugin validate . --strict`,
+which makes no model calls and costs nothing. That check matters more
+once the push webhook is live, because from then on a push to `main` is
+a release.
