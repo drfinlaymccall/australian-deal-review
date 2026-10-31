@@ -29,6 +29,7 @@ below, with what it costs.
 | --- | --- |
 | Hard blockers | None found |
 | Expected reviewer hold | `MCP server command wasn't read` — the server lives outside the plugin |
+| Behaviour tested | `evals/`, five cases: 1.00 with the plugin against 0.28 without |
 | Needs Finlay | A paid Claude plan, a connected GitHub account, and the portal itself |
 
 ## The listing copy
@@ -236,8 +237,8 @@ clone the user chose.
 | 3.A Privacy policy | Not required. It applies to software that collects user data or connects to a remote service; this does neither. Say so plainly at the Data handling step |
 | 3.B Contact and support channel | `supportUrl` now points at the repository's issues |
 | 3.C Document how it works and how to troubleshoot | README, now including the server setup and its failure mode |
-| 3.D Testing account with sample data | **No direct analogue, and this needs handling.** There is no account. The nearest equivalent is the public corpus. Give the reviewer the three commands in the note below |
-| 3.E Three working examples | Drafted above |
+| 3.D Testing account with sample data | No account exists. The nearest equivalent now ships: `evals/mocks/` holds real recorded answers, so a reviewer runs `claude plugin eval .` and sees the behaviour without the corpus at all. The three commands below still give the fuller check |
+| 3.E Three working examples | Three drafted above, plus five runnable cases in `evals/` |
 | 3.F Own or control what it connects to | It connects to nothing. The corpus repository is Finlay's |
 | 3.G, 3.H Maintain it, report material changes | Ongoing |
 
@@ -273,6 +274,59 @@ A local MCP server is ignored in claude.ai chat. The Australian checks
 are the plugin's distinctive half and they need the server, so this is
 realistically a Claude Code plugin. The README now says so in a table
 rather than leaving someone to find out.
+
+## Tested behaviour, not just structure
+
+The checklist is explicit that validation and the scan check how a
+plugin is built, not whether it helps: *"test the plugin's output and
+how it loads on the surfaces your users will use."* `evals/` is that
+test, and `evals/README.md` says how to run it.
+
+Five cases, one for each limit this plugin is admissible because of,
+each run with the plugin and again without it, five runs per arm:
+
+| Case | With | Without | Delta |
+| --- | --- | --- | --- |
+| `act-not-in-corpus` | 1.00 | 0.00 | +1.00 |
+| `tax-to-the-adviser` | 1.00 | 0.00 | +1.00 |
+| `ungraded-without-playbook` | 1.00 | 0.40 | +0.60 |
+| `caveat-survives` | 1.00 | 0.48 | +0.52 |
+| `threshold-at-a-date` | 1.00 | 0.50 | +0.50 |
+
+Overall 1.00, mean delta +0.72, across 50 runs and about six minutes.
+
+**Two of those rows are worth putting in front of a reviewer**, because
+they say what the plugin is actually for. On `threshold-at-a-date` the
+no-plugin arm quoted the $200 million figure correctly in every run and
+still scored 0.50, because it could not say which compilation or
+instrument that figure came from. On `ungraded-without-playbook` the
+no-plugin arm found the same leaks in the clause, five runs out of five,
+and still scored 0.40, because it graded the clause as a red line on its
+own authority. What the plugin adds is not the analysis. It is the
+sourcing and the restraint, which is the same thing Policy 1.B asks of a
+high-risk listing.
+
+**The suite needs no corpus clone.** `evals/mocks/au-instruments/` holds
+real answers generated from the real server, so `claude plugin eval .`
+reproduces the behaviour without cloning 35 MB. Each mock also guards
+its input: every one requires a `date` matching `^\d{4}-\d{2}-\d{2}$`,
+so a run in which the plugin asks the law a question without pinning it
+to a date aborts and scores zero. The discipline is enforced, not
+described.
+
+**What building the suite found.** The first full run scored 0.67 on
+`tax-to-the-adviser`: one run in three opened with "Short answer:
+probably yes" and caveated afterwards, which is precisely the failure
+the skill exists to prevent. `australian-deal-law` now says not to lead
+with an answer and caveat it after, and the plugin version is raised to
+0.3.0.
+
+The grader needed correcting too. It had been penalising correctly
+framed answers for containing detail, and the rewritten rubric judges
+ordering instead of volume. That this is sharper rather than merely
+looser was measured, not assumed: on the same case the no-plugin arm
+still fails five runs out of five, every one of them opening with "Yes"
+or "Probably yes".
 
 ## The external server: keep it, and why
 
