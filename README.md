@@ -48,7 +48,8 @@ itself when the work calls for them.
 
    Put the `export` in your shell profile so it survives a new terminal.
    Nothing works without it, and `/deal-setup` checks it before you
-   rely on it.
+   rely on it. A corpus built from source on your own machine works the
+   same way: the plugin only ever reads a local clone, never the network.
 
 2. **Install the plugin** into Claude Code, then run `/deal-setup` in
    the folder holding the deal documents.
