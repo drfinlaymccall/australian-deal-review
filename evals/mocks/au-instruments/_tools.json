@@ -1,0 +1,138 @@
+{
+ "tools": [
+  {
+   "name": "provision_on_date",
+   "title": "Read a provision on a date",
+   "description": "The text of one provision as it stood on a date, with the instrument that last changed it. Use this instead of quoting a provision from memory: the wording of a threshold or an exemption is often what the question turns on, and it changes.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "instrument": {
+      "type": "string",
+      "description": "Instrument: a folder name, a register id, or part of the title (e.g. 'foreign acquisitions')."
+     },
+     "provision": {
+      "type": "string",
+      "description": "Provision number: '52', 'section 52', '6.10.01', 'reg 6.10.01', '1-9'. A container unit as the corpus names it ('part-6/div-2') also works, as does a phrase from the provision's heading when it matches only one."
+     },
+     "date": {
+      "type": "string",
+      "description": "YYYY-MM-DD. The day the question is about."
+     }
+    },
+    "required": [
+     "instrument",
+     "provision",
+     "date"
+    ]
+   },
+   "annotations": {
+    "title": "Read a provision on a date",
+    "readOnlyHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   }
+  },
+  {
+   "name": "instrument_on_date",
+   "title": "List an instrument's provisions on a date",
+   "description": "Every provision an instrument had on a date, with its heading. Use it to see what existed then, before asking for any one provision. An instrument as large as the Corporations Regulations lists more than the reply holds, and comes back trimmed with a count of what was left out; reach those provisions with find_in_law instead.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "instrument": {
+      "type": "string",
+      "description": "Instrument name, register id, or part of the title."
+     },
+     "date": {
+      "type": "string",
+      "description": "YYYY-MM-DD."
+     }
+    },
+    "required": [
+     "instrument",
+     "date"
+    ]
+   },
+   "annotations": {
+    "title": "List an instrument's provisions on a date",
+    "readOnlyHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   }
+  },
+  {
+   "name": "what_changed",
+   "title": "What changed between two dates",
+   "description": "Every amendment to an instrument between two dates, each with the amending instrument that made it and the provisions it touched. Use it to answer 'what has moved since we signed?'.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "instrument": {
+      "type": "string",
+      "description": "Instrument name, register id, or part of the title."
+     },
+     "since": {
+      "type": "string",
+      "description": "YYYY-MM-DD, inclusive."
+     },
+     "until": {
+      "type": "string",
+      "description": "YYYY-MM-DD, inclusive."
+     },
+     "provision": {
+      "type": "string",
+      "description": "Optional: narrow to one provision."
+     }
+    },
+    "required": [
+     "instrument",
+     "since",
+     "until"
+    ]
+   },
+   "annotations": {
+    "title": "What changed between two dates",
+    "readOnlyHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   }
+  },
+  {
+   "name": "find_in_law",
+   "title": "Find a phrase in the law",
+   "description": "Find a phrase in the instruments as they stood on a date. Returns the provisions it appears in, so they can then be read in full.",
+   "inputSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+     "query": {
+      "type": "string",
+      "description": "A literal phrase, such as 'foreign government investor'."
+     },
+     "date": {
+      "type": "string",
+      "description": "YYYY-MM-DD."
+     },
+     "instrument": {
+      "type": "string",
+      "description": "Optional: one instrument instead of all."
+     }
+    },
+    "required": [
+     "query",
+     "date"
+    ]
+   },
+   "annotations": {
+    "title": "Find a phrase in the law",
+    "readOnlyHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false
+   }
+  }
+ ]
+}
