@@ -40,40 +40,89 @@ itself when the work calls for them.
 
 ## Setup
 
-1. **Clone the legislation corpus** and point the plugin at it:
+There is nothing hosted behind this plugin and no API key to get. The
+legislation tools come from an MCP server you run yourself, on your own
+machine, out of a clone of the corpus it reads. Setting it up is two
+steps — get the corpus, then tell the plugin where you put it — and the
+rest of this section is checking that it answers.
 
-   ```bash
-   git clone https://github.com/drfinlaymccall/australia-instruments.git
-   export AU_INSTRUMENTS_CORPUS=/path/to/australia-instruments
-   ```
+### 1. Get the corpus, which carries the server
 
-   Put the `export` in your shell profile so it survives a new
-   terminal. Nothing works without it: the plugin runs the corpus's own
-   MCP server, `tools/mcp_server.py`, from that clone, so the variable
-   is both where the law is and where the reader is. There is one
-   implementation of that reader and it lives with the record it reads,
-   so a correction to it arrives with a `git pull`. A corpus built from
-   source on your own machine works the same way — the plugin only ever
-   reads a local clone, never the network.
+```bash
+git clone https://github.com/drfinlaymccall/australia-instruments.git
+```
 
-2. **Install the plugin**:
+About 35 MB on disk. The server is `tools/mcp_server.py` inside that
+clone: Python 3.11 or later and `git`, standard library only, nothing to
+install. It speaks MCP over stdio, answers from the clone's git history,
+and makes no network calls.
 
-   ```
-   /plugin install australian-deal-review --marketplace drfinlaymccall/australian-deal-review
-   ```
+The plugin runs that copy rather than shipping one of its own. There is
+one implementation of the reader and it lives with the record it reads,
+so a correction to it arrives with a `git pull` in the corpus rather
+than with a new release of this plugin. Two copies of a reader of a
+legal record drift, and the drift is silent.
 
-   Then run `/deal-setup` in the folder holding the deal documents. It
-   checks the corpus connection first and says exactly what is wrong if
-   the variable is not set.
+If you would rather not take the published history on trust, build the
+corpus yourself from the Federal Register of Legislation — `Building it`
+in the corpus README gives the four commands — and point the plugin at
+your build instead. It cannot tell the difference.
 
-3. **Get the playbook filled in by counsel.** This is the step that
-   makes the rest worth having: it is how counsel's judgement gets
-   applied on every turn without being paid for again. Until it is
-   filled in, reviews describe clauses but do not grade them, and say
-   so.
+### 2. Tell the plugin where it is
 
-Python 3.11 or later, standard library only. No API keys, and nothing
-leaves the machine: the legislation server reads a local git clone.
+```bash
+export AU_INSTRUMENTS_CORPUS=/path/to/australia-instruments
+```
+
+Put the `export` in your shell profile so it survives a new terminal,
+and start Claude Code from a shell that has it. Nothing works without
+it: the variable is both where the law is and where the reader is.
+
+### 3. Install the plugin
+
+```
+/plugin install australian-deal-review --marketplace drfinlaymccall/australian-deal-review
+```
+
+### 4. Check that it answers
+
+Run `/deal-setup` in the folder holding the deal documents. Before it
+creates anything it asks the corpus for an instrument at today's date,
+and if that fails it says exactly what is wrong rather than carrying on
+and answering Australian questions from memory. The usual cause is step
+2: the variable is unset, misspelled, or set in a different shell from
+the one Claude Code is running in.
+
+To exercise the server on its own, without this plugin:
+
+```bash
+cd /path/to/australia-instruments
+claude mcp add au-instruments -- python3 -I tools/mcp_server.py
+```
+
+Then ask it what the combined acquirer/target revenue test was on
+1 January 2026, and which instrument set that figure.
+
+### 5. Get the playbook filled in by counsel
+
+This is the step that makes the rest worth having: it is how counsel's
+judgement gets applied on every turn without being paid for again. Until
+it is filled in, reviews describe clauses but do not grade them, and say
+so.
+
+### Where the legislation tools run
+
+A local MCP server is started by the app that loads the plugin, so the
+Australian checks are only available where that can happen:
+
+| | Legislation tools |
+| --- | --- |
+| Claude Code | Yes |
+| Cowork | Only when the session runs on your own computer |
+| claude.ai chat | No — local MCP servers are ignored there |
+
+The skills and commands load everywhere, but without the server the
+Australian checks have nothing to read. Use this in Claude Code.
 
 ## What it is not
 
