@@ -1,7 +1,7 @@
 ---
 name: australian-deal-law
 description: The Australian-side checks on a cross-border acquisition - foreign investment screening (FIRB), merger notification (ACCC), takeovers relief, and the tax and restraint questions that sit outside this corpus. Use when reviewing a transaction document with an Australian target or seller, when asked whether a deal needs FIRB or ACCC clearance, when a draft changes anything about approvals, conditions, longstop dates or restraints, and whenever a threshold figure or an exemption is about to be stated. Also use when asked what the law said on a particular date.
-version: 0.1.0
+version: 0.2.0
 ---
 
 # Australian-side checks
@@ -91,6 +91,14 @@ Nothing about **tax** is in this corpus. The look-through CGT treatment
 of an earn-out right sits in Subdivision 118-I of the Income Tax
 Assessment Act 1997, which is not here. Treat every tax point as a
 question for the Australian tax adviser, never as a finding.
+
+**Do not lead with the answer and caveat it afterwards.** "Probably
+yes, subject to confirmation" is a finding with a disclaimer stapled to
+it, and the disclaimer is the half that falls off when the sentence is
+repeated to someone else. Say first that it is the adviser's question.
+Then set out what it turns on, and what the adviser would need to know
+to settle it. That ordering is the whole protection: it is what stops
+an unverified recollection being carried into a negotiation as advice.
 
 ## Foreign investment screening (FIRB)
 
