@@ -1,8 +1,9 @@
-# earnout-war-room
+# australian-deal-review
 
-A Claude Code plugin for reviewing earn-out drafts turn by turn, with
+A Claude Code plugin for reviewing deal documents turn by turn, with
 the Australian-side checks read from the legislation **as it stood on
-the date that matters** rather than from memory.
+the date that matters** rather than from memory. It goes deepest on the
+earn-out, which is the part most often argued about afterwards.
 
 It is preparation for counsel. It does not give legal or tax advice,
 and it does not draft anything to the other side.
@@ -46,13 +47,24 @@ itself when the work calls for them.
    export AU_INSTRUMENTS_CORPUS=/path/to/australia-instruments
    ```
 
-   Put the `export` in your shell profile so it survives a new terminal.
-   Nothing works without it, and `/deal-setup` checks it before you
-   rely on it. A corpus built from source on your own machine works the
-   same way: the plugin only ever reads a local clone, never the network.
+   Put the `export` in your shell profile so it survives a new
+   terminal. Nothing works without it: the plugin runs the corpus's own
+   MCP server, `tools/mcp_server.py`, from that clone, so the variable
+   is both where the law is and where the reader is. There is one
+   implementation of that reader and it lives with the record it reads,
+   so a correction to it arrives with a `git pull`. A corpus built from
+   source on your own machine works the same way — the plugin only ever
+   reads a local clone, never the network.
 
-2. **Install the plugin** into Claude Code, then run `/deal-setup` in
-   the folder holding the deal documents.
+2. **Install the plugin**:
+
+   ```
+   /plugin install australian-deal-review --marketplace drfinlaymccall/australian-deal-review
+   ```
+
+   Then run `/deal-setup` in the folder holding the deal documents. It
+   checks the corpus connection first and says exactly what is wrong if
+   the variable is not set.
 
 3. **Get the playbook filled in by counsel.** This is the step that
    makes the rest worth having: it is how counsel's judgement gets

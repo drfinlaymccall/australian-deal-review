@@ -2,7 +2,7 @@
   "au-instruments": {
     "type": "stdio",
     "command": "python3",
-    "args": ["-I", "${CLAUDE_PLUGIN_ROOT}/mcp/instruments_server.py"],
+    "args": ["-I", "${AU_INSTRUMENTS_CORPUS}/tools/mcp_server.py"],
     "env": {
       "AU_INSTRUMENTS_CORPUS": "${AU_INSTRUMENTS_CORPUS}"
     }

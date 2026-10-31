@@ -1,9 +1,9 @@
 ---
-description: Stand up the deal war room - playbook, issues register, guardrail checks and a corpus connection test
+description: Stand up the deal review - playbook, issues register, guardrail checks and a corpus connection test
 allowed-tools: ["Read", "Write", "Glob", "Bash", "AskUserQuestion", "Skill", "mcp__au-instruments__instrument_on_date"]
 ---
 
-# Set up the war room
+# Set up the review
 
 Run once, at the start. It creates the files the other commands rely on
 and proves the legislation lookup actually works before anyone depends
